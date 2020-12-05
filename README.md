@@ -513,5 +513,31 @@ found_matches = matcher(doc2)
 print(found_matches)
 #he matcher found the first occurrence because the lemmatizer treated 'Solar-powered' as a verb
 ```
+- phrase matcher
+    
+    In the above section we used token patterns to perform rule-based matching. An alternative - and often more efficient - method is to match on __terminology lists__. In this case we use PhraseMatcher to create a Doc object from a list of phrases, and pass that into matcher instead.
+```python
+from spacy.matcher import PhraseMatcher
+matcher = PhraseMatcher(nlp.vocab)
+# phrase matcher
+with open(r'..\Resource\TextFiles\reaganomics.txt') as f:
+    doc3 = nlp(f.read())
+doc3
 
--
+# First, create a list of match phrases:
+phrase_list = ['voodoo economics', 'supply-side economics', 'trickle-down economics', 'free-market economics']
+
+# Convert each phrase to a Doc object
+phrase_patterns = [nlp(text) for text in phrase_list]
+phrase_patterns
+# Pass each Doc object into matcher (note the use of the asterisk!):
+matcher.add('VoodooEconomics', None, *phrase_patterns)
+
+# Build a list of matches
+matches = matcher(doc3)
+for match_id, start, end in matches:
+    string_id = nlp.vocab.strings[match_id]  # get string representation
+    span = doc3[start:end]                    # get the matched span
+    print(match_id, string_id, start, end, span.text)
+print(span.text)
+```
