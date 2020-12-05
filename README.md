@@ -255,3 +255,121 @@ mylist = re.findall(r"[^!,? ]+", sentence) # + will remove everything in the []
 text = "Only find hypen word in the sentence for example USA-China"
 re.findall(r"[\w]+-[\w]+", text)
 ```
+
+## Introduction to NLP
+### 1. Environment setup
+1.1 Install spacy
+```powershell
+$ conda install -c conda-forge spacy
+```
+
+1.2 download library spacy need
+- run conda prompt as administrator
+- cd back to c:\>
+- install package
+```powershell
+$ python -m spacy download en
+```
+
+2. Spacy basics
+2.1 import spacy and load english model
+```python
+# import spacy and download english model
+import spacy 
+nlp = spacy.load('en_core_web_sm')
+
+# parse a string to tokens
+doc = nlp(u'Tesla is looking at buying U.S. startup for $6 million')
+for token in doc:
+    print(token.text, token.pos, token.pos_, token.dep_)
+```
+
+2.2 pipeline in spacy
+```python
+# View nlp pipeline
+nlp.pipeline
+nlp.pipe_names
+
+```
+
+2.3 Tokens in spacy
+```python
+# token
+doc2 = nlp(u"Tesla isn't  looking into startups anymore")
+for token in doc2:
+    print(token.text, token.pos, token.pos_, token.dep_)
+```
+
+2.4 span and sentence
+```python
+# span: large text docs
+doc3 = nlp(u'Although commmonly attributed to John Lennon from his song "Beautiful Boy", \
+the phrase "Life is what happens to us while we are making other plans" was written by \
+cartoonist Allen Saunders and published in Reader\'s Digest in 1957, when Lennon was 17.')
+life_quote = doc3[16:30]
+type(life_quote) # it is a span type object
+
+# sentence
+doc4 = nlp(u"This is first sentence. This is second. This is third.")
+for senc in doc4.sents:
+    print(senc.text)
+    print(senc)
+
+doc4[5].is_sent_start # where the word token is start of sentence
+```
+
+2.5 Tokenization:
+- Break up the original text into component pieces (tokens)
+- Prefix/Suffix/Infix/Exception
+- token can be sliced /indexed but cannot be assigned
+```python
+import spacy
+nlp = spacy.load('zh_core_web_sm')
+
+mystring = '"We\'re moving to L.A.!'
+print(mystring)
+
+doc = nlp(mystring)
+for token in doc:
+    print(token.text)
+
+doc2 = nlp(u"We're here to help! Send snail-mail, email support@oursite.com or visit us at http://www.oursite.com!")
+for t in doc2:
+    print(t)
+
+doc3 = nlp(u'A 5km NYC cab ride costs $10.30')
+for t in doc3:
+    print(t)
+
+doc4 = nlp(u"Let's visit St. Louis in the U.S. next year.")
+for t in doc4:
+    print(t)
+
+len(doc4)
+doc5 = nlp(u'It is better to give than to receive.')
+
+# Retrieve the third token:
+doc5[2]
+```
+- name entities
+```python
+doc8 = nlp(u'Apple to build a Hong Kong factory for $6 million')
+
+for token in doc8:
+    print(token.text, end=' | ')
+
+print('\n----')
+
+for ent in doc8.ents:
+    print(ent)
+    print(ent.text+' - '+ent.label_+' - '+str(spacy.explain(ent.label_)))
+```
+- chunks
+```python
+doc9 = nlp(u"Autonomous cars shift insurance liability toward manufacturers.")
+
+for chunk in doc9.noun_chunks:
+    print(chunk.text)
+```
+
+2.6 Visualize Tokenization
