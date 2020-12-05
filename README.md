@@ -413,3 +413,19 @@ words = ['run','runner','running','ran','runs','easily','fairly']
 for word in words:
     print(word+' --> '+s_stemmer.stem(word))
 ```
+
+2.8 Lemmatization
+```python
+import spacy
+nlp = spacy.load('en_core_web_sm')
+
+doc1 = nlp(u"I am a runner running in a race because I love to run since I ran today")
+
+for token in doc1:
+    print(token.text, '\t', token.pos_, '\t', token.lemma, '\t', token.lemma_)
+
+def show_lemmas(text):
+    for token in text:
+        print(f'{token.text:{12}} {token.pos_:{6}} {token.lemma:<{22}} {token.lemma_}')
+show_lemmas((doc1))
+```
