@@ -429,3 +429,26 @@ def show_lemmas(text):
         print(f'{token.text:{12}} {token.pos_:{6}} {token.lemma:<{22}} {token.lemma_}')
 show_lemmas((doc1))
 ```
+
+2.9 Stop Words
+```python
+import spacy
+nlp = spacy.load('en_core_web_sm')
+# Print the set of spaCy's default stop words (remember that sets are unordered):
+print(nlp.Defaults.stop_words)
+
+len(nlp.Defaults.stop_words)
+
+# check if it is a stop word or not
+nlp.vocab['after'].is_stop
+
+# add new stop words to the dictionary
+nlp.Defaults.stop_words.add('btw')
+nlp.vocab['btw'].is_stop = True
+len(nlp.Defaults.stop_words)
+
+# remove a stop words
+nlp.Defaults.stop_words.remove('btw')
+nlp.vocab['btw'].is_stop = False
+nlp.vocab['btw'].is_stop
+```
