@@ -387,3 +387,29 @@ displacy.render(doc, style='ent', jupyter=True)
 doc = nlp(u'This is a sentence.')
 displacy.serve(doc, style='dep')
 ```
+
+2.7 Stemming with NLTK
+
+2.7.1 NLTK porterstemmer
+- porterstemmer
+```python
+import nltk
+from nltk.stem.porter import PorterStemmer
+# create Stemmer object
+p_stemmer = PorterStemmer()
+words = ['run','runner','running','ran','runs','easily','fairly']
+for word in words:
+    print(word+' --> '+p_stemmer.stem(word))
+```
+
+- snowball stemmber
+```python
+from nltk.stem.snowball import SnowballStemmer
+
+# The Snowball Stemmer requires that you pass a language parameter
+s_stemmer = SnowballStemmer(language='english')
+
+words = ['run','runner','running','ran','runs','easily','fairly']
+for word in words:
+    print(word+' --> '+s_stemmer.stem(word))
+```
