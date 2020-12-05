@@ -177,3 +177,81 @@ for page in pdf_text:
     print(page)
     print('\n \n \n')
 ```
+
+1.3 Regular expressions
+1.3.0 About Regular expression
+- Regular expression allow for pattern searching in a text document
+- for example \d means digits
+    - r'\d{3}-\d{3}-\d{4}' means a list of digits like '123-123-1234' like  a phone number
+
+
+1.3.1 re package for regular expression
+```python
+import re
+pattern = 'phone'
+text = "The phone number 123-456-7890. Call soon"
+
+my_match = re.search(pattern, text)
+my_match
+
+# print the matching range (only first match)
+my_match.span()
+
+# 
+new_text = "The phone is a phone"
+allMatch = re.findall("phone", new_text)
+allMatch # list of all matches
+
+
+# use re.findinter() to list all the matching result one by one
+for match in re.finditer("phone", new_text):
+    print(match.span())
+```
+1.3.2 search generalize patterns
+- characters pattern in text 
+```python
+pattern = r"\d\d\d-\d\d\d-\d\d\d\d"
+phoneNumber = re.search(pattern, text)
+phoneNumber.group()
+```
+- quantifier
+```python
+pattern = r"\d{3}-\d{3}-\d{4}"
+mymatch = re.findall(pattern, text)
+mymatch.group()
+```
+1.3.3 Groups
+```python
+# set group in pattern by ()
+pattern = r"(\d{3})-(\d{3})-(\d{4})"
+mymatch = re.search(pattern, text)
+for i in range(4):
+    print(mymatch.group(i))
+# group(0) is the whole pattern
+```
+1.3.4 or statement with |
+```python
+text = "His name is Jim"
+re.search("Jim|Tom", text)
+```
+1.3.5 wild card
+```python
+re.findall(r".at", "The cat is in the rat hat")
+```
+`
+1.3.6 Start with (^) or end with ($)
+```python
+re.findall(r"\d$", "This ends with number 2")
+re.findall(r"^\d", "1, This ends with number ")
+```
+1.3.7 Remove charaters with ^ and []
+```python
+sentence = "There are ! numbers like 12, 34, 56 in this sentence"
+mylist = re.findall(r"[^!,? ]+", sentence) # + will remove everything in the []
+" ".join(mylist) # all the characters are removed
+```
+1.3.7 find patterns
+```python
+text = "Only find hypen word in the sentence for example USA-China"
+re.findall(r"[\w]+-[\w]+", text)
+```
