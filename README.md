@@ -373,3 +373,17 @@ for chunk in doc9.noun_chunks:
 ```
 
 2.6 Visualize Tokenization
+- using display spacy
+```python
+from spacy import displacy
+
+doc = nlp(u'Apple is going to build a U.K. factory for $6 million.')
+displacy.render(doc, style='dep', jupyter=True, options={'distance': 110})
+```
+```python
+doc = nlp(u'Over the last quarter Apple sold nearly 20 thousand iPods for a profit of $6 million.')
+displacy.render(doc, style='ent', jupyter=True)
+
+doc = nlp(u'This is a sentence.')
+displacy.serve(doc, style='dep')
+```
