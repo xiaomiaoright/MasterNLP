@@ -452,3 +452,66 @@ nlp.Defaults.stop_words.remove('btw')
 nlp.vocab['btw'].is_stop = False
 nlp.vocab['btw'].is_stop
 ```
+
+2.10 Vacubulary matching
+- create and use matcher object
+```python
+import spacy
+nlp = spacy.load('en')
+# import matcher module
+from spacy.matcher import Matcher
+# create matcher object
+matcher = Matcher(nlp.vocab)
+# create patterns
+pattern1 = [{'LOWER': 'solarpower'}]
+pattern2 = [{'LOWER': 'solar'}, {'LOWER': 'power'}]
+pattern3 = [{'LOWER': 'solar'}, {'IS_PUNCT': True}, {'LOWER': 'power'}]
+#single spaces are not tokenized, so they don't count as punctuation
+matcher.add('SolarPower', None, pattern1, pattern2, pattern3)
+
+#Applying the matcher to a Doc object
+doc = nlp(u'The Solar Power industry continues to grow as demand for solarpower increases. Solar-power cars are gaining popularity.')
+found_matches = matcher(doc)
+print(found_matches)
+
+for match_id, start, end in found_matches:
+    string_id = nlp.vocab.strings[match_id]  # get string representation
+    span = doc[start:end]                    # get the matched span
+    print(match_id, string_id, start, end, span.text)
+```
+
+- Setting pattern options and quantifiers
+```python
+#  token rules optional by passing an 'OP':'*' argument
+# Redefine the patterns:
+pattern1 = [{'LOWER': 'solarpower'}]
+pattern2 = [{'LOWER': 'solar'}, {'IS_PUNCT': True, 'OP':'*'}, {'LOWER': 'power'}]
+
+# Remove the old patterns to avoid duplication:
+matcher.remove('SolarPower')
+
+# Add the new set of patterns to the 'SolarPower' matcher:
+matcher.add('SolarPower', None, pattern1, pattern2)
+print(found_matches)
+```
+
+- use LEMMA
+```python
+# use lemma
+pattern1 = [{'LOWER': 'solarpower'}]
+pattern2 = [{'LOWER': 'solar'}, {'IS_PUNCT': True, 'OP':'*'}, {'LEMMA': 'power'}] # CHANGE THIS PATTERN
+
+# Remove the old patterns to avoid duplication:
+matcher.remove('SolarPower')
+
+# Add the new set of patterns to the 'SolarPower' matcher:
+matcher.add('SolarPower', None, pattern1, pattern2)
+
+doc2 = nlp(u'Solar-powered energy runs solar-powered cars.')
+
+found_matches = matcher(doc2)
+print(found_matches)
+#he matcher found the first occurrence because the lemmatizer treated 'Solar-powered' as a verb
+```
+
+-
