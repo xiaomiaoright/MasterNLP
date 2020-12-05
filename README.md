@@ -541,3 +541,64 @@ for match_id, start, end in matches:
     print(match_id, string_id, start, end, span.text)
 print(span.text)
 ```
+
+## 3. Speech Tagging and Entity Recogonition
+3.1 Introduction to Section on POS and NER
+
+POS tag: noun, verb, adj
+
+fine-grained tags: plural noun, past-tense verb, superlative adj
+
+```python
+import spacy
+nlp = spacy.load('en_core_web_sm')
+
+doc = nlp(u"The quick brown fox jumped over the lazy dog's back.")
+print(doc.text)
+print(doc[4].text, doc[4].pos_, doc[4].tag_, spacy.explain(doc[4].tag_))
+
+# Token POS: fine/coarse-grained tag
+for token in doc:
+    print(f'{token.text:{10}} {token.pos_:{8}} {token.tag_:{6}} {spacy.explain(token.tag_)}')
+
+# Use of the same token in different condition
+doc = nlp(u'I read books on NLP.')
+r = doc[1]
+print(f'{r.text:{10}} {r.pos_:{8}} {r.tag_:{6}} {spacy.explain(r.tag_)}')
+# read: present tense
+
+doc = nlp(u'I read a book on NLP.')
+r = doc[1]
+print(f'{r.text:{10}} {r.pos_:{8}} {r.tag_:{6}} {spacy.explain(r.tag_)}')
+# read: past tense
+```
+
+- count of POS and TAGs in text
+```python
+
+# count of POS tags
+doc = nlp(u"The quick brown fox jumped over the lazy dog's back.")
+# Count the frequencies of different coarse-grained POS tags:
+POS_counts = doc.count_by(spacy.attrs.POS)
+POS_counts
+
+for i, v in sorted(POS_counts.items()):
+    print(f'{i}  {doc.vocab[i].text:{5}} {v}')
+
+# count by tag
+TAG_counts = doc.count_by(spacy.attrs.TAG)
+for i, v in sorted(TAG_counts.items()):
+    print(f'{i:>{25}}  {doc.vocab[i].text:{5}} {v}')
+```
+
+3.2 Part of Speech Tagging
+
+3.3 Visualization of Speech Tagging
+
+3.4 Named Entity Recognition
+
+3.5 Visualizing Named Entity Recognition
+
+3.6 Sentence Segmentation
+
+3.7 Speech Assessment
