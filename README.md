@@ -594,8 +594,120 @@ for i, v in sorted(TAG_counts.items()):
 3.2 Part of Speech Tagging
 
 3.3 Visualization of Speech Tagging
+```python
+import spacy
+nlp = spacy.load('en')
+from spacy import displacy
 
+doc = nlp(u"The quick brown fox jumped over the lazy dog's back.")
+
+displacy.render(doc, style='dep', jupyter=True, options={'distance': 110})
+```
+
+- set display options
+```python
+options = {'distance': 110, 'compact': 'True', 'color': 'yellow', 'bg': '#09a3d5', 'font': 'Times'}
+displacy.serve(doc, style='dep', options=options)
+```
+
+```python
+# create visualziation in browser
+displacy.serve(doc, style='dep', options={'distance':100})
+```
+
+- large text with span and Doc.sents
+```python
+doc2 = nlp(u"This is a sentence. This is another, possibly longer sentence.")
+
+# Create spans from Doc.sents:
+spans = list(doc2.sents)
+
+displacy.serve(spans, style='dep', options={'distance': 110})
+```
 3.4 Named Entity Recognition
+- what is NER?
+
+NER seeks to locate and classify named entity mentions in unstructured text into pre-defined categories such as the person names, organizations, locations, medical codes, time expressions, quantities, monetary values, percentages etc.
+
+```python
+
+import spacy
+nlp = spacy.load('en')
+
+def show_ents(doc):
+    if doc.ents:
+        for ent in doc.ents:
+            print(f'{ent.text:{25}} - {ent.label_:{5}} - {spacy.explain(ent.label_)}')
+    else:
+        print('no NER')
+doc = nlp(u'May I go to Washington, DC next May to see the Washington Monument?')
+
+show_ents(doc)
+
+
+doc = nlp(u'Can I please borrow 500 dollars from you to buy some Microsoft stock?')
+
+for ent in doc.ents:
+    print(ent.text, ent.start, ent.end, ent.start_char, ent.end_char, ent.label_)
+
+```
+
+- NER tag: doc.ents .label_
+- Add New or customized NER tag to a span
+```python
+for token in doc:
+    print(token)
+from spacy.tokens import Span
+# Get the Hash value of the ORG entity
+ORG = doc.vocab.strings[u'ORG']
+# create a Span for the new entity
+new_ent = Span(doc, 0, 1, label = ORG)
+# Add the entity to the existing Doc object
+doc.ents = list(doc.ents) + [new_ent]
+# check the ents after adding the item
+show_ents(doc)
+```
+
+- Phrase Entity
+
+add multiple entity
+```python
+# add named entities to all matching spans
+doc = nlp(u'Our company plans to introduce a new vacuum cleaner. '
+          u'If successful, the vacuum-cleaner will be our first product.')
+show_ents(doc)
+
+# Goal is to recognize Vacuum cleaner as entity
+# Create the desired phrase pattern first
+phrase_list = ['vacuum cleaner', 'vacuum-cleaner']
+phrase_patterns = [nlp(text) for text in phrase_list]
+
+# Apply the patterns to the matcher object
+from spacy.matcher import PhraseMatcher
+matcher = PhraseMatcher(nlp.vocab)
+matcher.add('newproduct', None, *phrase_patterns)
+
+# Apply the matcher to the Doc object
+matches = matcher(doc)
+matches
+
+# create span from each match and create named entity to PROD
+from spacy.tokens import Span
+PROD = doc.vocab.strings[u'PRODUCT']
+new_ents = [Span(doc, match[1], match[2], label = PROD) for match in matches]
+doc.ents = list(doc.ents) + new_ents
+
+# test the NER
+show_ents(doc)
+```
+
+- Count Entities
+```python
+doc = nlp(u'Originally priced at $29.50, the sweater was marked down to five dollars.')
+show_ents(doc)
+
+len([ent for ent in doc.ents if ent.label_=='MONEY'])+
+```
 
 3.5 Visualizing Named Entity Recognition
 
