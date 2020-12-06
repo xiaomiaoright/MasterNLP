@@ -541,7 +541,74 @@ for match_id, start, end in matches:
     print(match_id, string_id, start, end, span.text)
 print(span.text)
 ```
+- Spacy Doc entities problem with Linebreaks
+```python
+# problem with line breaks in Spacy when working with NER(named entity recognition NER)
+def show_ents(doc):
+    if doc.ents:
+        for ent in doc.ents:
+            print(ent.text+' - '+ent.label_+' - '+str(spacy.explain(ent.label_)))
+    else:
+        print('No named entities found.')
+doc = nlp(u'Originally priced at $29.50,\nthe sweater was marked down to five dollars.')
+show_ents(doc)
+# \n is regonized as GPE entity
 
+
+if 'remove_whitespace_entities' in nlp.pipe_names:
+    nlp.remove_pipe('remove_whitespace_entities')
+# fix the problem by adding to nlp pipeline
+def remove_whitespace_entities(doc):
+    doc.ents = [e for e in doc.ents if not e.text.isspace()]
+    return doc
+# insert the new entities to the pipeline AFTER NER component
+nlp.add_pipe(remove_whitespace_entities, after = 'ner')
+# rerun nlp on the text to create nlp doc object
+doc = nlp(u'Originally priced at $29.50,\nthe sweater was marked down to five dollars.')
+show_ents(doc)
+```
+- Spacy sentence in Doc object, changing the sentence rules
+```python
+# changing
+nlp = spacy.load('en_core_web_sm')  # reset to the original
+mystring = u"This is a sentence. This is another.\n\nThis is a \nthird sentence."
+
+# Spacy default behavior
+doc = nlp(mystring)
+doc.text
+for sent in doc.sents:
+    print([token.text for token in sent])
+for token in doc:
+    print(token.is_sent_start, token.i, token.text)
+# \n\n is  recognized as one token
+# 'This' is is recognized as start of sentence
+
+# change the rules
+from spacy.pipeline import SentenceSegmenter
+
+def split_on_newlines(doc):
+    start = 0
+    seen_newline = False
+    for word in doc:
+        if seen_newline:
+            yield doc[start:word.i]
+            start = word.i
+            seen_newline = False
+        elif word.text.startswith('\n'): # handles multiple occurrences
+            seen_newline = True
+    yield doc[start:]      # handles the last group of tokens
+sbd = SentenceSegmenter(nlp.vocab, strategy=split_on_newlines)
+
+if 'sbd' in nlp.pipe_names:
+    nlp.remove_pipe('sbd')
+nlp.add_pipe(sbd)
+# While the function split_on_newlines can be named anything we want, it's important to use the name sbd for the SentenceSegmenter.
+
+doc = nlp(mystring)
+doc.text
+for sent in doc.sents:
+    print([token.text for token in sent])
+```
 ## 3. Speech Tagging and Entity Recogonition
 3.1 Introduction to Section on POS and NER
 
@@ -711,6 +778,118 @@ len([ent for ent in doc.ents if ent.label_=='MONEY'])+
 
 3.5 Visualizing Named Entity Recognition
 
+```python
+
+import spacy
+nlp = spacy.load('en_core_web_sm')
+from spacy import displacy
+
+doc = nlp(u'Over the last quarter Apple sold nearly 20 thousand iPods for a profit of $6 million. '
+         u'By contrast, Sony sold only 7 thousand Walkman music players.')
+
+displacy.render(doc, style='ent', jupyter=True)
+
+
+for sent in doc.sents:
+    displacy.render(nlp(sent.text), style='ent', jupyter=True)
+```
+
+- Visualize specified entities
+```python
+options = {'ents': ['ORG', 'PRODUCT']}
+
+displacy.render(doc, style='ent', jupyter=True, options=options)
+```
+
+- customize entities
+```python
+for sent in doc.sents:
+    displacy.render(nlp(sent.text), style='ent', jupyter=True)
+options = {'ents': ['ORG', 'PRODUCT']}
+displacy.render(doc, style='ent', jupyter=True, options=options)
+
+
+
+colors = {'ORG': 'linear-gradient(90deg, #aa9cfc, #fc9ce7)', 'PRODUCT': 'radial-gradient(yellow, green)'}
+options = {'ents': ['ORG', 'PRODUCT'], 'colors':colors}
+displacy.render(doc, style='ent', jupyter=True, options=options)
+```
+- 
 3.6 Sentence Segmentation
+- Sentence segmentation: Doc objects are divided into sentences
+- Doc.sents is a generator. A Doc is not segmented until doc.sents is called
+- sentences can be saved to a list
+- sents are Spans with start and end pointers
+```python
+# Sentence segementation
+import spacy
+nlp = spacy.load('en_core_web_sm')
+
+doc = nlp(u'This is the first sentence. This is another sentence. This is the last sentence.')
+for token in doc:
+    print(token)
+for sent in doc.sents:
+    print(sent)
+# sentents cannot be called by doc.sents[0] because doc.sents is a generator
+# sentents can be collected into a list
+doc_sents = [sent for sent in doc.sents]
+doc_sents[1].start
+```
+- Add sentencing rules
+    
+    Spacy's built-in sentencizer relies on the dependency parse and end of sentence punctuation to determine segmentation rules. Rules can be added but they have to be added before the creation of the Doc project. 
+    
+    Default pipeline: tagger, parser, names
+
+```python
+print(nlp.pipe_names)
+# tagger, parser, ner
+
+# Parsing the segmentation start tokens happens during the nlp pipeline
+doc2 = nlp(u'This is a sentence. This is a sentence. This is a sentence.')
+
+# check if the word is the start of sentence: token.is_sent_start
+for token in doc2:
+    print(token.is_sent_start, ' '+token.text)
+
+# check spacy's default sentence behavior
+# SPACY'S DEFAULT BEHAVIOR
+doc3 = nlp(u'"Management is doing things right; leadership is doing the right things." -Peter Drucker')
+print(doc3.text)
+for token in doc3:
+    print(token.i, token) # token.i shows the index
+doc3[:-1]
+for token in doc3:
+    print(token.is_sent_start, ' '+token.text)
+for sent in doc3.sents:
+    print(sent)
+# -Peter is marked as sent_start token
+
+# Add sentence rules to pipeline, then re-create the Doc object and check the sentence
+def set_custom_boundaries(doc):
+    for token in doc[:-1]:
+        if token.text == ";":
+            doc[token.i + 1].is_sent_start = True # set the token next to ; to be sentence start
+    return doc
+print(nlp.pipe_names)
+nlp.add_pipe(set_custom_boundaries, before = 'parser')
+print(nlp.pipe_names)
+# the new rule has to be run before document is parsed.
+# either pass before = 'parser' or first = True
+
+# re-run the Doc  project creation:
+doc4 = nlp(u'"Management is doing things right; leadership is doing the right things." -Peter Drucker')
+for sent in doc4.sents:
+    print(sent)
+
+# And yet the new rule doesn't apply to the older Doc object like doc3 which is created before adding rules:
+for sent in doc3.sents:
+    print(sent)
+```
+
+    tokens .is_sent_start cannot be edited directly. spaCy refuses to change the tag after the document is parsed to prevent inconsistencies in the data
+```python
+doc3[7].is_sent_start = True # result in error
+```
 
 3.7 Speech Assessment
