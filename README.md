@@ -1021,3 +1021,66 @@ I'm sure the producers had the best intentions, but the execution was lacking."
 text_clf_lsvc2.predict([myreview])
 ```
 ## 5. Semantics and Sentiment Analysis
+
+- Install spacy larger data models
+    - run miniconda promp in admin mode
+    - activate virtual environment
+```powershell
+$ python -m spacy download en_core_web_md
+$ python -m spacy download en_core_web_lg 
+$ python -m spacy download en_vectors_web_lg 
+```
+
+5.1 Word Vectors
+- Word2Vec
+```python
+# Word Vector in Spacy
+# Loac model 
+import spacy
+nlp = spacy.load('en_vectors_web_lg')
+
+# check word vectors
+nlp(u'lion').vector
+
+# if sentence, take average of vectors of single words
+nlp(u'The quick brown fox jumped away').vector
+
+# identifiy similiarity
+tokens = nlp(u'lion cat pet')
+for token1 in tokens:
+    for token2 in tokens:
+        print(f'{token1.text}, {token2.text}, {token1.similarity(token2)}')
+
+tokens = nlp(u'like love hate')
+for token1 in tokens:
+    for token2 in tokens:
+        print(f'{token1.text}, {token2.text}, {token1.similarity(token2)}')
+
+
+# check all the vectors in the vocab library
+len(nlp.vocab.vectors)
+nlp.vocab.vectors.shape
+
+tokens = nlp(u'dog cat nargle')
+for token in tokens:
+    print(token.text, token.has_vector, token.vector_norm, token.is_oov)
+
+# calcualte cosin similarity of two words
+nlp = spacy.load('en_core_web_md')
+from scipy import spatial
+consine_similarity = lambda vec1, vec2: 1 - spatial.distance.cosine(vec1, vec2)
+
+king = nlp.vocab['king'].vector
+man = nlp.vocab['man'].vector
+woman = nlp.vocab['woman'].vector
+
+new_vector = king - man + woman
+computed_similarities = []
+for word in nlp.vocab:
+    if word.has_vector and word.is_lower and  word.is_alpha:
+        similarity = consine_similarity(new_vector, word.vector)
+        computed_similarities.append((word, similarity))
+
+computed_similarities = sorted(computed_similarities, key=lambda item: -item[1])
+print([t[0].text for t in computed_similarities[:10]])
+```
