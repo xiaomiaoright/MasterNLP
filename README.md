@@ -1020,3 +1020,4 @@ I'm sure the producers had the best intentions, but the execution was lacking."
 
 text_clf_lsvc2.predict([myreview])
 ```
+## 5. Semantics and Sentiment Analysis
