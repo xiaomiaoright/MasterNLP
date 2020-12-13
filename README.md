@@ -1236,3 +1236,46 @@ npr['topic'] = topic_results.argmax(axis=1)
 npr.head()
 
 ```
+
+6.3 Non-Nagtive Metric Factorization
+```python
+import pandas as pd
+npr = pd.read_csv(r'..\Resource\05-Topic-Modeling\npr.csv')
+npr.head()
+
+# Use IFiDF Vectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfidf = TfidfVectorizer(max_df=0.95, min_df=2, stop_words='english')
+
+# transform text input to vectors with tfidf vectorizer
+dtm = tfidf.fit_transform(npr['Article'])
+
+print(npr.shape, dtm.shape)
+
+# view features of tfidf
+tfidf.get_feature_names()[0]
+
+# Create Non-Nagtive Matric Factorizion object
+# Apply NMF: use CountVectorized text document as input to fit NMF
+from sklearn.decomposition import NMF
+nmf_model = NMF(n_components=7, random_state=42)
+nmf_model.fit(dtm)
+
+for i in range(10):
+    random_word_id = random.randint(0,54776)
+    print(random_word_id, tfidf.get_feature_names()[random_word_id])
+tfidf.get_feature_names()[11969]
+
+for index,topic in enumerate(nmf_model.components_):
+    print(f'THE TOP 15 WORDS FOR TOPIC #{index}')
+    print([tfidf.get_feature_names()[i] for i in topic.argsort()[-15:]])
+    print('\n')
+
+results = nmf_model.transform(dtm)
+npr['topic'] = results.argmax(axis=1)
+npr.head()
+
+topic_dict = {0: 'health', 1:'politics', 2:'insurance', 3:'law', 4:'election', 5:'entertain', 6:'education'}
+npr['topicName'] = npr['topic'].map(topic_dict)
+npr.head()
+```
