@@ -1084,3 +1084,45 @@ for word in nlp.vocab:
 computed_similarities = sorted(computed_similarities, key=lambda item: -item[1])
 print([t[0].text for t in computed_similarities[:10]])
 ```
+
+5.2 Sentiment analysis
+- VADER (Valence Aware Dictionary for Sentiment Reasoning)
+    - Polarity: positive vs. negative
+    - intensity: strength of emotion
+```python
+# review amazon
+import pandas as pd
+df = pd.read_csv(r'..\Resource\TextFiles\amazonreviews.tsv', sep='\t')
+df.head()
+
+df['label'].value_counts()
+
+df.isnull().sum()
+
+# Clean data
+blanks = []
+for i, lb, rv in df.itertuples():
+    if type(rv) == str:
+        if rv.isspace():
+            blanks.append(i)
+# Remove the blank review
+df.drop(blanks, inplace=True)
+
+# Apply VADER to check review 
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+sid = SentimentIntensityAnalyzer()
+
+print(df.loc[0]['review'])
+sid.polarity_scores(df.loc[0]['review'])
+
+# Add a column to show the polarity scores
+df['scored'] = df['review'].apply(lambda review: sid.polarity_scores(review))
+df['compound_score'] = df['scored'].apply(lambda x: x['compound'])
+df['comp_sen'] = df['compound_score'].apply(lambda x: 'pos' if x >= 0 else 'neg')
+df.head()
+
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+accuracy_score(df['label'], df['comp_sen'])
+print(classification_report(df['label'], df['comp_sen']))
+confusion_matrix(df['label'], df['comp_sen'])
+```
