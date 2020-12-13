@@ -1126,3 +1126,43 @@ accuracy_score(df['label'], df['comp_sen'])
 print(classification_report(df['label'], df['comp_sen']))
 confusion_matrix(df['label'], df['comp_sen'])
 ```
+
+5.3 Move review application
+```python
+import numpy as np
+import pandas as pd
+
+df = pd.read_csv(r'..\Resource\TextFiles\moviereviews.tsv', sep='\t')
+df.head()
+
+df.isnull().sum()
+
+df.dropna(inplace= True)
+
+blanks = []
+for i, lb, rv in df.itertuples():
+    if type(rv) == str:
+        if rv.isspace():
+            blanks.append(i)
+blanks
+df.drop(blanks, inplace=True)
+
+df.shape
+
+df['label'].value_counts()
+
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+sid = SentimentIntensityAnalyzer()
+
+sid.polarity_scores(df.loc[0]['review'])
+df['polarity_scores'] = df['review'].apply(lambda x: sid.polarity_scores(x))
+df['comp_score'] = df['polarity_scores'].apply(lambda x: x['compound'])
+df['pred_score'] = df['comp_score'].apply(lambda x: 'pos' if x >=0 else 'neg')
+df.head()
+
+from sklearn.metrics import accuracy_score,classification_report,confusion_matrix
+print(accuracy_score(df['label'], df['pred_score']))
+print(classification_report(df['label'], df['pred_score']))
+print(confusion_matrix(df['label'], df['pred_score']))
+
+```
