@@ -1166,3 +1166,73 @@ print(classification_report(df['label'], df['pred_score']))
 print(confusion_matrix(df['label'], df['pred_score']))
 
 ```
+
+## 6. Topic modelling
+6.1 Latent Dirichlet Allocation (LDA)
+- use from sklearn.feature_extraction.text import CountVectorizer
+- cv = CountVectorizer(max_df=0.95, min_df=2, stop_words='english')
+    - max_df
+        - When building the vocabulary ignore terms that have a document frequency strictly higher than the given threshold (corpus-specific stop words). If float, the parameter represents a proportion of documents, integer absolute counts. This parameter is ignored if vocabulary is not None.
+    - min_df
+        - When building the vocabulary ignore terms that have a document frequency strictly lower than the given threshold. This value is also called cut-off in the literature. If float, the parameter represents a proportion of documents, integer absolute counts. This parameter is ignored if vocabulary is not None.
+```python
+import pandas as pd
+npr = pd.read_csv(r'..\Resource\05-Topic-Modeling\npr.csv')
+npr.head()
+
+# Preprocessing: CountVectorization of the text document
+from sklearn.feature_extraction.text import CountVectorizer
+# Create the Vectorizer object
+cv = CountVectorizer(max_df=0.95, min_df=2, stop_words='english')
+# fit the artical to CV object
+dtm = cv.fit_transform(npr['Article'])
+dtm.shape # 11992, 54777
+npr.shape # 11992, 1
+
+# Apply LDA: use CountVectorized text document as input to fit LDA
+from sklearn.decomposition import LatentDirichletAllocation
+LDA = LatentDirichletAllocation(n_components=7, random_state= 42)
+LDA.fit(dtm)
+
+# Show stored words
+len(cv.get_feature_names()) # how many features in the vectorized text
+import random
+for i in range(10):
+    random_idx = random.randint(0, 54776)
+    print(cv.get_feature_names()[random_idx])
+
+# Show the top words of each topic
+len(LDA.components_) # 7 components are set when create LDA object
+LDA.components_.shape # 7, 54777
+# For each topic
+topic0 = LDA.components_[0]
+topic1 = LDA.components_[1]
+# topic0 shows the features possibility in the topic
+# Sort the topic by possibilities
+topic0.argsort() # shows in index of the topic0 from smallest to highest values
+top_word_index = topic0.argsort()[-10:]# highest 10 possiblies index in topic0
+
+for idx in top_word_index:
+    print(cv.get_feature_names()[idx])
+
+# check the top possibility words for 7 topics
+for index,topic in enumerate(LDA.components_):
+    print(f'THE TOP 15 WORDS FOR TOPIC #{index}')
+    print([cv.get_feature_names()[i] for i in topic.argsort()[-15:]])
+    print('\n')
+
+# Attaching the discovered topic labels to articles
+dtm.shape
+topic_results = LDA.transform(dtm)
+topic_results.shape
+# for each article(row), results is the list of possiblity of 7 topics
+topic_results[0]
+# Find the index of the highest possiblity
+topic_results[0].argsort()[-1]
+topic_results[0].argmax()
+
+npr['topic'] = topic_results.argmax(axis=1)
+
+npr.head()
+
+```
